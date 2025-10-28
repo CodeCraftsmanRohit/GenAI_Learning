@@ -7,3 +7,9 @@
 ### Input :<USER_QUERY>
 
 ### Response:\n
+
+# ChatML
+{
+    "role":"system"|"user"|"assistant"
+    "content":"string
+}
