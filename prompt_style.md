@@ -13,3 +13,6 @@
     "role":"system"|"user"|"assistant"
     "content":"string
 }
+
+# INST Prompting
+[INST] What is the time now?[/INST]
