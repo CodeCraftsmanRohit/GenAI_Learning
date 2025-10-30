@@ -47,24 +47,24 @@ while True:
     message_history.append({"role":"assistant","content":raw_result})
     parsed_result=json.loads(raw_result)
     if parsed_result.get("step") == "START":
-    print("🔥", parsed_result.get("content"))
-    continue
+#     print("🔥", parsed_result.get("content"))
+#     continue
 
-    if parsed_result.get("step") == "PLAN":
-    print("🧠", parsed_result.get("content"))
-    continue
+#     if parsed_result.get("step") == "PLAN":
+#     print("🧠", parsed_result.get("content"))
+#     continue
 
-    if parsed_result.get("step") == "OUTPUT":
-    print("✨", parsed_result.get("content"))
-    continue
+#     if parsed_result.get("step") == "OUTPUT":
+#     print("✨", parsed_result.get("content"))
+#     continue
 
 
-response = client.chat.completions.create(
-    model="gemini-2.5-flash",
-    response_format={"type":"json_object"},
-    messages=[
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": "Hey, write a code to add n numbers in js"}
-    ],
+# response = client.chat.completions.create(
+#     model="gemini-2.5-flash",
+#     response_format={"type":"json_object"},
+#     messages=[
+#         {"role": "system", "content": SYSTEM_PROMPT},
+#         {"role": "user", "content": "Hey, write a code to add n numbers in js"}
+#     ],
 
-)
+# )
