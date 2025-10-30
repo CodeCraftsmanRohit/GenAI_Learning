@@ -9,8 +9,8 @@ import json
 load_dotenv()
 
 import requests
-
-
+from pydantic import BaseModel,Field
+from typing import Optional
 
 client=OpenAI(
 
@@ -68,28 +68,40 @@ Available Tools:
 
 
 
- Example 2: Weather Query
+ Example 1:
 
  START: What is the weather of Delhi?
 
- PLANNING PLAN: $\{$"step": "PLAN", "content": "Seems like user is interested in getting weather of Delhi in"$\}$
+ PLAN: {"step": "PLAN", "content": "Seems like user is interested in getting weather of Delhi"}
 
- PLAN: $\{$"step": "PLAN", "content": "Lets see if we have any available tool from the list of avai"$\}$PLAN: $\{$"step": "PLAN", "content": "Great, we have get_weather tool available for this query."$\}$PLAN: $\{$"step": "PLAN", "content": "I need to call get_weather tool for delhi as input for city"$\}$TOOL: $\{$"step": "TOOL", "tool": "get_weather", "input": "delhi"$\}$PLAN (OBSERVE): $\{$"step": "OBSERVE", "tool": "get_weather", "output": "The temp of delhi is cloudy with 20"$\}$PLAN: $\{$"step": "PLAN", "content": "Great, I got the weather info about delhi"$\}$FINAL OUTPUTOUTPUT: $\{$"step": "OUTPUT", "content": "The cuurent weather in delhi is 20 C with some cloudy sky"$\}$
+ PLAN: {"step": "PLAN", "content": "Lets see if we have any available tool from the list of available tools"}
 
+ PLAN: {"step": "PLAN", "content": "Great, we have get_weather tool available for this query."}
 
+ PLAN:{"step": "PLAN", "content": "I need to call get_weather tool for delhi as input for city"}
 
-Do NOT return any additional commentary or metadata outside the array.
+ PLAN: {"step": "TOOL", "tool": "get_weather", "input": "delhi"}
 
+ PLAN {"step": "OBSERVE", "tool": "get_weather", "output": "The temp of delhi is cloudy with 20 deg. cesius"}
+
+ PLAN: {"step": "PLAN", "content": "Great, I got the weather info about delhi"}
+
+ OUTPUT: {"step": "OUTPUT", "content": "The cuurent weather in delhi is 20 C with some cloudy sky"}
 
 
 
 
 """
 
+class MyOutputFormat(BaseModel):
+    step: str = Field(..., description="The ID of the step. Example: PLAN, OUTPUT, TOOL, etc")
+    content: Optional[str] = Field(None, description="The optional string content for the step")
+    tool: Optional[str] = Field(None, description="The ID of the tool to call.")
+    input: Optional[str] = Field(None, description="The input params for the tool")
 
-
-
-
+message_history = [
+    {"role": "system", "content": SYSTEM_PROMPT },
+]
 
 
 def get_weather(city :str):
@@ -107,7 +119,6 @@ def get_weather(city :str):
     return "Something went wrong"
 
 
-
 available_tools={
 
     "get_weather":get_weather
@@ -115,113 +126,81 @@ available_tools={
 }
 
 
-
-
-
 def main():
 
-    user_query=input("> ")
+    user_query=input("👍 ")
 
-    response= client.chat.completions.create(
+    message_history.append({"role":"user","content":user_query})
 
-         model="gemini-2.5-flash",
+    while True:
+        response=client.chat.completions.parse(
 
-         messages=[
+            model="gemini-2.5-flash",
 
-             {"role":"user","content":user_query}
+            response_format=MyOutputFormat,
 
-         ]
+            messages=message_history
 
-    )
+        )
 
-    print(f"{response.choices[0].message.content}")
+        raw_result=response.choices[0].message.content
 
 
+        message_history.append({"role":"assistant","content":raw_result})
 
+        parsed_result=response.choices[0].message.parsed
 
 
 
+        if parsed_result.step=="START":
 
-message_history=[
+            print("🔥",parsed_result.content)
 
-    {"role":"system","content": SYSTEM_PROMPT}
+            continue
 
-]
 
 
+        if parsed_result.step=="TOOL":
 
-user_query=input("👍 ")
+            tool_yo_call=parsed_result.tool
 
-message_history.append({"role":"user","content":user_query})
+            tool_input=parsed_result.input
 
+            print(f"🔨{tool_yo_call}({tool_input})")
 
 
-while True:
 
-    response=client.chat.completions.create(
+            tool_response=available_tools[tool_yo_call](tool_input)
 
-        model="gemini-2.5-flash",
+            print(f"🔨{tool_yo_call}({tool_input})={tool_response}")
 
-        response_format={"type":"json_object"},
+            message_history.append({"role":"developer","content":json.dumps(
 
-        messages=message_history
+                {"step":"OBSERVE","tool":tool_yo_call,"input":tool_input,"output":tool_response}
 
-    )
+            )})
 
-    raw_result=response.choices[0].message.content
+            continue
 
-    message_history.append({"role":"assistant","content":raw_result})
 
-    parsed_result=json.loads(raw_result)
 
 
 
-    if parsed_result.get("step")=="START":
 
-        print("🔥",parsed_result.get("content"))
 
-        continue
+        if parsed_result.step == "PLAN":
 
+            print("🧠", parsed_result.content)
 
+            continue
 
-    if parsed_result.get("step")=="TOOL":
 
-        tool_yo_call=parsed_result.get("tool")
 
-        tool_input=parsed_result.get("input")
+        if parsed_result.step == "OUTPUT":
 
-        print(f"🔨{tool_yo_call}({tool_input})")
+            print("✨", parsed_result.content)
 
+            break
 
-
-        tool_response=available_tools[tool_yo_call](tool_input)
-
-        print(f"🔨{tool_yo_call}({tool_input})={tool_response}")
-
-        message_history.append({"role":"developer","content":json.dumps(
-
-            {"step":"OBSERVE","tool":tool_yo_call,"input":tool_input,"output":tool_response}
-
-        )})
-
-        continue
-
-
-
-
-
-
-
-    if parsed_result.get("step") == "PLAN":
-
-        print("🧠", parsed_result.get("content"))
-
-        continue
-
-
-
-    if parsed_result.get("step") == "OUTPUT":
-
-        print("✨", parsed_result.get("content"))
-
-        continue
+if __name__ == "__main__":
+    main()
