@@ -1,28 +1,23 @@
 from openai import OpenAI
 
 from dotenv import load_dotenv
+load_dotenv()
 
 import os
 
 import json
 
-load_dotenv()
 
 import requests
 from pydantic import BaseModel,Field
 from typing import Optional
 
 client=OpenAI(
-
-
-
         api_key=os.getenv("OPENAI_API_KEY") , # match env variable name
 
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 
 )
-
-
 
 
 
@@ -63,7 +58,7 @@ Output **JSON Format**:
 Available Tools:
 
 -get_weather(city:str):Takes city name as an input string and returns the weather info about the city.
-
+-run_command(cmd : str): Takes a system linux command as string and executes the command on user's system and returns the output from that command
 
 
 
@@ -118,10 +113,15 @@ def get_weather(city :str):
 
     return "Something went wrong"
 
+def run_command(cmd :str):
+    result=os.system(cmd)
+    return result
+
 
 available_tools={
 
-    "get_weather":get_weather
+    "get_weather":get_weather,
+    "run_command":run_command
 
 }
 
