@@ -30,21 +30,24 @@ transformer-> for only input token it just predict the only next input token and
 
 llm models require gpt
 
-computers are good in math  , tokenization is diff. for diff. models 
+computers are good in math  , tokenization is diff. for diff. models
 TIKTOKENIZER
 
 numbers are given to tranformer and transformer just predict next token
 Converting the user input to a set of numbers understandable by llm is known as tokenization ,
 detokenization converts it back to text
 
-tiktoken made by openAi helps to tokenizse and detokenize the text 
+tiktoken made by openAi helps to tokenizse and detokenize the text
 
 Vector Embeddings give semantic meanings to tokens
 
 Positional Encoding ensures positions of the vectors are maintained
 
 Self attention ensures vectora talk to each other
-Multi-Head attention where we keep attention on multiple aspects of a thing 
+Multi-Head attention where we keep attention on multiple aspects of a thing
 
 Linear-> probability
 softmax-> taking out the most probable answer
+
+
+Vector DB -> Pinecode Db,Chroma db,pg vector,Qdrant db
